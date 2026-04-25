@@ -57,7 +57,8 @@ Exposed via nginx on `127.0.0.1:9800` by default.
 {
   "api_key": "<uid>",
   "scope": "myservice",
-  "access_type": "read"
+  "access_type": "read",
+  "client_ip": "1.2.3.4"
 }
 ```
 
@@ -66,7 +67,7 @@ Returns `{"valid": true}` on success, or HTTP 403/404 with a `detail` message.
 Validation order:
 1. Key exists in `API_KEY` table (404 if not)
 2. `is_valid=1` and not expired (403 if not)
-3. If IP whitelist entries exist for this key, client IP must be in the list (403 if not)
+3. If IP whitelist entries exist for this key, `client_ip` must be in the list (403 if not)
 4. `scope` present in permissions; `"write"` grants both read and write; `"read"` grants read only (403 if insufficient)
 
 ## Configuration

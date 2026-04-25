@@ -1,8 +1,9 @@
 import json
+from datetime import datetime
 from functools import wraps
 from uuid import uuid4
 
-from flask import Flask, jsonify, request, session
+from flask import Flask, jsonify, redirect, render_template, request, session, flash, url_for
 
 from dmj_vault.dbaccess import db, APIKey, Admin, IPWhitelist
 
@@ -31,29 +32,50 @@ def login_required(f):
     return decorated
 
 
+def ui_login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('ui_login'))
+        return f(*args, **kwargs)
+    return decorated
+
+
+# ── JSON API ──────────────────────────────────────────────────────────────────
+
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json(force=True)
-    login_val = data.get('login', '')
-    password_val = data.get('password', '')
+    if request.content_type and 'application/json' in request.content_type:
+        data = request.get_json(force=True)
+        login_val = data.get('login', '')
+        password_val = data.get('password', '')
+    else:
+        login_val = request.form.get('login', '')
+        password_val = request.form.get('password', '')
 
+    from werkzeug.security import check_password_hash
     try:
         admin = Admin.get(Admin.login == login_val)
     except Admin.DoesNotExist:
-        return jsonify({'error': 'Invalid credentials'}), 403
+        admin = None
 
-    from werkzeug.security import check_password_hash
-    if not check_password_hash(admin.password, password_val):
-        return jsonify({'error': 'Invalid credentials'}), 403
+    if admin is None or not check_password_hash(admin.password, password_val):
+        if request.content_type and 'application/json' in request.content_type:
+            return jsonify({'error': 'Invalid credentials'}), 403
+        return render_template('login.html', error='Invalid credentials')
 
     session['logged_in'] = True
-    return jsonify({'ok': True})
+    if request.content_type and 'application/json' in request.content_type:
+        return jsonify({'ok': True})
+    return redirect(url_for('ui_keys'))
 
 
 @app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
-    return jsonify({'ok': True})
+    if request.content_type and 'application/json' in request.content_type:
+        return jsonify({'ok': True})
+    return redirect(url_for('ui_login'))
 
 
 @app.route('/api-keys', methods=['GET'])
@@ -183,3 +205,190 @@ def delete_whitelist(uid, wl_id):
 
     entry.delete_instance()
     return jsonify({'ok': True})
+
+
+# ── HTML UI ───────────────────────────────────────────────────────────────────
+
+@app.route('/')
+def ui_root():
+    if session.get('logged_in'):
+        return redirect(url_for('ui_keys'))
+    return redirect(url_for('ui_login'))
+
+
+@app.route('/login', methods=['GET'])
+def ui_login():
+    if session.get('logged_in'):
+        return redirect(url_for('ui_keys'))
+    return render_template('login.html', error=None)
+
+
+@app.route('/logout', methods=['GET'])
+def ui_logout():
+    session.clear()
+    return redirect(url_for('ui_login'))
+
+
+@app.route('/keys')
+@ui_login_required
+def ui_keys():
+    keys = list(APIKey.select().order_by(APIKey.ts_created.desc()))
+    for k in keys:
+        try:
+            perms = json.loads(k.permissions)
+        except (ValueError, TypeError):
+            perms = {}
+        k.permissions_summary = list(perms.keys())
+    return render_template('keys.html', keys=keys)
+
+
+@app.route('/keys/new', methods=['GET'])
+@ui_login_required
+def ui_keys_new():
+    return render_template('key_detail.html',
+                           uid=None, is_valid=False,
+                           ts_created=None, ts_expires_local='',
+                           permissions_json='{}', whitelist=[])
+
+
+@app.route('/keys/new', methods=['POST'])
+@ui_login_required
+def ui_keys_new_post():
+    uid = str(uuid4())
+    perms = _parse_permissions_form()
+    ts_expires = _parse_ts_expires()
+    APIKey.create(uid=uid, permissions=json.dumps(perms), ts_expires=ts_expires)
+    flash('Key created.', 'success')
+    return redirect(url_for('ui_key_detail', uid=uid))
+
+
+@app.route('/keys/<uid>')
+@ui_login_required
+def ui_key_detail(uid):
+    try:
+        key = APIKey.get(APIKey.uid == uid)
+    except APIKey.DoesNotExist:
+        flash('Key not found.', 'error')
+        return redirect(url_for('ui_keys'))
+
+    whitelist = list(IPWhitelist.select().where(IPWhitelist.api_key_id == key.id))
+    try:
+        perms = json.loads(key.permissions)
+    except (ValueError, TypeError):
+        perms = {}
+
+    ts_expires_local = ''
+    if key.ts_expires:
+        ts_expires_local = key.ts_expires.strftime('%Y-%m-%dT%H:%M')
+
+    return render_template('key_detail.html',
+                           uid=key.uid,
+                           is_valid=bool(key.is_valid),
+                           ts_created=key.ts_created,
+                           ts_expires_local=ts_expires_local,
+                           permissions_json=json.dumps(perms),
+                           whitelist=whitelist)
+
+
+@app.route('/keys/<uid>/save', methods=['POST'])
+@ui_login_required
+def ui_key_save(uid):
+    try:
+        key = APIKey.get(APIKey.uid == uid)
+    except APIKey.DoesNotExist:
+        flash('Key not found.', 'error')
+        return redirect(url_for('ui_keys'))
+
+    key.permissions = json.dumps(_parse_permissions_form())
+    key.ts_expires = _parse_ts_expires()
+    key.save()
+    flash('Saved.', 'success')
+    return redirect(url_for('ui_key_detail', uid=uid))
+
+
+@app.route('/keys/<uid>/toggle', methods=['POST'])
+@ui_login_required
+def ui_key_toggle(uid):
+    try:
+        key = APIKey.get(APIKey.uid == uid)
+    except APIKey.DoesNotExist:
+        flash('Key not found.', 'error')
+        return redirect(url_for('ui_keys'))
+
+    key.is_valid = not bool(key.is_valid)
+    key.save()
+    flash('Key ' + ('activated.' if key.is_valid else 'deactivated.'), 'success')
+    return redirect(url_for('ui_key_detail', uid=uid))
+
+
+@app.route('/keys/<uid>/delete', methods=['POST'])
+@ui_login_required
+def ui_key_delete(uid):
+    try:
+        key = APIKey.get(APIKey.uid == uid)
+    except APIKey.DoesNotExist:
+        flash('Key not found.', 'error')
+        return redirect(url_for('ui_keys'))
+
+    IPWhitelist.delete().where(IPWhitelist.api_key_id == key.id).execute()
+    key.delete_instance()
+    flash('Key deleted.', 'success')
+    return redirect(url_for('ui_keys'))
+
+
+@app.route('/keys/<uid>/whitelist/add', methods=['POST'])
+@ui_login_required
+def ui_whitelist_add(uid):
+    try:
+        key = APIKey.get(APIKey.uid == uid)
+    except APIKey.DoesNotExist:
+        flash('Key not found.', 'error')
+        return redirect(url_for('ui_keys'))
+
+    ip = request.form.get('src_ip_address', '').strip()
+    if ip:
+        IPWhitelist.create(api_key_id=key.id, src_ip_address=ip)
+        flash(f'{ip} added to whitelist.', 'success')
+    return redirect(url_for('ui_key_detail', uid=uid))
+
+
+@app.route('/keys/<uid>/whitelist/<int:wl_id>/delete', methods=['POST'])
+@ui_login_required
+def ui_whitelist_delete(uid, wl_id):
+    try:
+        key = APIKey.get(APIKey.uid == uid)
+    except APIKey.DoesNotExist:
+        flash('Key not found.', 'error')
+        return redirect(url_for('ui_keys'))
+
+    try:
+        entry = IPWhitelist.get(
+            (IPWhitelist.id == wl_id) & (IPWhitelist.api_key_id == key.id))
+        entry.delete_instance()
+        flash('IP removed.', 'success')
+    except IPWhitelist.DoesNotExist:
+        flash('Entry not found.', 'error')
+    return redirect(url_for('ui_key_detail', uid=uid))
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _parse_permissions_form():
+    raw = request.form.get('permissions_json', '{}')
+    try:
+        perms = json.loads(raw)
+        if isinstance(perms, dict):
+            return perms
+    except (ValueError, TypeError):
+        pass
+    return {}
+
+
+def _parse_ts_expires():
+    val = request.form.get('ts_expires', '').strip()
+    if not val:
+        return None
+    try:
+        return datetime.strptime(val, '%Y-%m-%dT%H:%M')
+    except ValueError:
+        return None

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title_suffix %} — API Keys{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3">
+  <h4 class="mb-0 me-auto">API Keys</h4>
+  <a href="{{ url_for('ui_keys_new') }}" class="btn btn-primary btn-sm">+ New Key</a>
+</div>
+
+{% if keys %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>UID</th>
+          <th>Scopes</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Expires</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for k in keys %}
+        <tr class="cursor-pointer" onclick="location.href='{{ url_for('ui_key_detail', uid=k.uid) }}'">
+          <td>
+            <a href="{{ url_for('ui_key_detail', uid=k.uid) }}"
+               class="uid-mono text-decoration-none"
+               title="{{ k.uid }}">{{ k.uid[:16] }}…</a>
+          </td>
+          <td>
+            {% for scope in k.permissions_summary %}
+              <span class="badge bg-secondary me-1">{{ scope }}</span>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% if k.is_valid %}
+              <span class="badge bg-success">Active</span>
+            {% else %}
+              <span class="badge bg-secondary">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="small text-muted">{{ k.ts_created.strftime('%Y-%m-%d') if k.ts_created else '—' }}</td>
+          <td class="small text-muted">{{ k.ts_expires.strftime('%Y-%m-%d') if k.ts_expires else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <p class="mb-3">No API keys yet.</p>
+  <a href="{{ url_for('ui_keys_new') }}" class="btn btn-primary">Create your first key</a>
+</div>
+{% endif %}
+{% endblock %}

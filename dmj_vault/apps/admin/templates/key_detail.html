@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title_suffix %} — {{ uid[:16] if uid else 'New Key' }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{{ url_for('ui_keys') }}" class="text-decoration-none text-muted small">← All Keys</a>
+</div>
+
+{% if uid %}
+{# ── Key info ── #}
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <span class="uid-mono text-break flex-grow-1" id="uid-text">{{ uid }}</span>
+      <button class="btn btn-outline-secondary btn-sm" type="button" onclick="copyUid()">Copy</button>
+      {% if is_valid %}
+        <span class="badge bg-success fs-6">Active</span>
+        <form method="post" action="{{ url_for('ui_key_toggle', uid=uid) }}" class="mb-0">
+          <button class="btn btn-warning btn-sm" type="submit">Deactivate</button>
+        </form>
+      {% else %}
+        <span class="badge bg-secondary fs-6">Inactive</span>
+        <form method="post" action="{{ url_for('ui_key_toggle', uid=uid) }}" class="mb-0">
+          <button class="btn btn-success btn-sm" type="submit">Activate</button>
+        </form>
+      {% endif %}
+    </div>
+    <div class="mt-2 small text-muted">
+      Created: {{ ts_created.strftime('%Y-%m-%d %H:%M') if ts_created else '—' }}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3 align-items-start">
+  {# ── Edit / create form ── #}
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header">{{ 'Edit Key' if uid else 'New Key' }}</div>
+      <div class="card-body">
+        <form method="post"
+              action="{{ url_for('ui_key_save', uid=uid) if uid else url_for('ui_keys_new') }}"
+              id="key-form">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Permissions</label>
+            <input type="hidden" name="permissions_json" id="permissions_json" value="{{ permissions_json }}">
+            <div id="scope-rows" class="d-flex flex-column gap-2 mb-2"></div>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addScopeRow()">+ Add scope</button>
+          </div>
+
+          <div class="mb-4">
+            <label for="ts_expires" class="form-label fw-semibold">Expires</label>
+            <input type="datetime-local" class="form-control" id="ts_expires" name="ts_expires"
+                   value="{{ ts_expires_local }}">
+            <div class="form-text">Leave blank for no expiry.</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {# ── Right column: whitelist + danger ── #}
+  {% if uid %}
+  <div class="col-lg-5 d-flex flex-column gap-3">
+    {# Whitelist #}
+    <div class="card shadow-sm">
+      <div class="card-header">IP Whitelist</div>
+      <div class="card-body p-0">
+        {% if whitelist %}
+        <table class="table table-sm mb-0">
+          <tbody>
+            {% for w in whitelist %}
+            <tr>
+              <td class="uid-mono ps-3">{{ w.src_ip_address }}</td>
+              <td class="text-end pe-3">
+                <form method="post"
+                      action="{{ url_for('ui_whitelist_delete', uid=uid, wl_id=w.id) }}"
+                      class="mb-0">
+                  <button class="btn btn-outline-danger btn-sm py-0" type="submit">Remove</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted small px-3 pt-3 pb-2 mb-0">No IP restrictions — all IPs allowed.</p>
+        {% endif %}
+      </div>
+      <div class="card-footer bg-transparent">
+        <form method="post" action="{{ url_for('ui_whitelist_add', uid=uid) }}" class="d-flex gap-2">
+          <input type="text" name="src_ip_address" class="form-control form-control-sm"
+                 placeholder="1.2.3.4" required>
+          <button class="btn btn-outline-primary btn-sm text-nowrap" type="submit">Add IP</button>
+        </form>
+      </div>
+    </div>
+
+    {# Danger zone #}
+    <div class="card border-danger shadow-sm">
+      <div class="card-header text-danger">Danger zone</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('ui_key_delete', uid=uid) }}">
+          <button class="btn btn-danger btn-sm" type="submit"
+                  onclick="return confirm('Delete this key and all its whitelist entries?')">
+            Delete key
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  const scopeRows = document.getElementById('scope-rows');
+  const permInput = document.getElementById('permissions_json');
+
+  function addScopeRow(name='', access='read') {
+    const row = document.createElement('div');
+    row.className = 'input-group input-group-sm scope-row';
+    row.innerHTML =
+      '<input type="text" class="form-control scope-name" placeholder="scope" value="' + escHtml(name) + '" required>' +
+      '<select class="form-select scope-access" style="max-width:110px">' +
+        '<option value="read"' + (access==='read'?' selected':'') + '>read</option>' +
+        '<option value="write"' + (access==='write'?' selected':'') + '>write</option>' +
+      '</select>' +
+      '<button class="btn btn-outline-secondary" type="button" onclick="this.closest(\'.scope-row\').remove()">×</button>';
+    scopeRows.appendChild(row);
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function serializePerms() {
+    const perms = {};
+    scopeRows.querySelectorAll('.scope-row').forEach(row => {
+      const name = row.querySelector('.scope-name').value.trim();
+      const access = row.querySelector('.scope-access').value;
+      if (name) perms[name] = access;
+    });
+    permInput.value = JSON.stringify(perms);
+  }
+
+  document.getElementById('key-form').addEventListener('submit', serializePerms);
+
+  // Populate rows from existing permissions
+  try {
+    const perms = JSON.parse(permInput.value || '{}');
+    Object.entries(perms).forEach(([name, access]) => addScopeRow(name, access));
+  } catch(e) {}
+
+  function copyUid() {
+    const text = document.getElementById('uid-text').textContent.trim();
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1500);
+    });
+  }
+</script>
+{% endblock %}

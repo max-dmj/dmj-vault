@@ -21,3 +21,6 @@ version = {file = "debian/version.txt"}
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dmj_vault.apps.admin", "dmj_vault.apps.admin.*"]
+
+[tool.setuptools.package-data]
+"dmj_vault.apps.admin" = ["templates/*.html", "static/*.css", "static/*.js"]

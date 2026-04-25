@@ -74,6 +74,10 @@ build_package() {
     cp "$pkg_pyproject" "$BUILD_DIR/pyproject.toml"
     cp -r "$pkg_debian" "$BUILD_DIR/debian"
 
+    if grep -q 'override_dh_python3' "$BUILD_DIR/debian/rules"; then
+        sed -i '/^\tdh_python3$/a\\trm -rf debian/tmp/usr/lib/python3*/dist-packages/*.dist-info' "$BUILD_DIR/debian/rules"
+    fi
+
     cd "$BUILD_DIR" || return 1
 
     DEBEMAIL="$MAINTAINER_EMAIL" DEBFULLNAME="$MAINTAINER_NAME" \

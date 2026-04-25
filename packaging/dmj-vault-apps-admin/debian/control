@@ -1,0 +1,24 @@
+Source: dmj-vault-apps-admin
+Section: python
+Priority: optional
+Maintainer: Max <max@derkacz-mj.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               pybuild-plugin-pyproject
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: dmj-vault-apps-admin
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends},
+         python3-flask,
+         gunicorn,
+         dmj-vault-dbaccess,
+         python3-werkzeug
+Description: Flask admin application for dmj-vault
+ JSON API for managing API keys in the DMJ_VAULT database.
+ Provides CRUD operations on API keys and IP whitelists,
+ with session-based authentication. Runs under gunicorn
+ on 127.0.0.1:9701 by default.

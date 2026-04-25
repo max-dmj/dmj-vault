@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    configure)
+        mkdir -p /etc/dmj-vault-apps-api/conf.d
+
+        if [ ! -f /etc/dmj-vault-apps-api/conf ]; then
+            cat > /etc/dmj-vault-apps-api/conf <<'EOF'
+# DMJ Vault API App Configuration
+GUNICORN_PORT=9702
+GUNICORN_HOST=127.0.0.1
+GUNICORN_WORKERS=4
+NGINX_PORT=9800
+NGINX_HOST=127.0.0.1
+EOF
+        fi
+
+        ln -sf /etc/nginx/sites-available/dmj-vault-apps-api \
+               /etc/nginx/sites-enabled/dmj-vault-apps-api
+        nginx -t && systemctl reload nginx || true
+
+        systemctl daemon-reload
+        systemctl enable dmj-vault-apps-api.service
+        systemctl start dmj-vault-apps-api.service || true
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+esac
+
+#DEBHELPER#

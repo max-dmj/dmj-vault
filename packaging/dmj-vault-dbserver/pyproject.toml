@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dmj-vault-dbserver"
+dynamic = ["version"]
+requires-python = ">=3.8"
+dependencies = []
+license = {text = "MIT"}
+
+[project.scripts]
+dmj-vault-set-admin-account = "dmj_vault.dbserver.set_admin_account:main"
+
+[tool.dmj-vault]
+source-dir = "dmj_vault/dbserver"
+
+[tool.setuptools.dynamic]
+version = {file = "debian/version.txt"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dmj_vault.dbserver", "dmj_vault.dbserver.*"]
+
+[tool.setuptools.package-data]
+"dmj_vault.dbserver" = ["migrations/*.py"]

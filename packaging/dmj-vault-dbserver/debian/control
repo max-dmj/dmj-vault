@@ -1,0 +1,23 @@
+Source: dmj-vault-dbserver
+Section: python
+Priority: optional
+Maintainer: Max <max@derkacz-mj.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               pybuild-plugin-pyproject
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: dmj-vault-dbserver
+Architecture: all
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${python3:Depends}, ${misc:Depends},
+         python3-mysqldb,
+         default-mysql-server,
+         python3-werkzeug
+Description: MySQL database setup for dmj-vault
+ Creates the DMJ_VAULT database and tables, runs schema migrations,
+ and provides the dmj-vault-set-admin-account CLI for managing the
+ admin account.

@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+export PYBUILD_DESTDIR=debian/tmp
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_python3:
+	dh_python3
+	for pkg_dir in debian/dmj-vault-dbserver/usr/lib/python3*/dist-packages/dmj_vault; do \
+		if [ -d "$$pkg_dir" ]; then \
+			python3 -m compileall -b "$$pkg_dir"; \
+			find "$$pkg_dir" -name '*.py' -not -path "*/migrations/*" -delete; \
+			find "$$pkg_dir" -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true; \
+		fi; \
+	done

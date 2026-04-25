@@ -1,0 +1,25 @@
+Source: dmj-vault-apps-api
+Section: python
+Priority: optional
+Maintainer: Max <max@derkacz-mj.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               pybuild-plugin-pyproject
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: dmj-vault-apps-api
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends},
+         python3-fastapi,
+         python3-uvicorn,
+         gunicorn,
+         nginx,
+         dmj-vault-dbaccess
+Description: FastAPI /check endpoint for dmj-vault
+ Validates API keys against the DMJ_VAULT database, checking key
+ validity, expiry, optional IP whitelist, and permission scopes.
+ Runs under gunicorn (uvicorn workers) on 127.0.0.1:9702, exposed
+ via nginx on 127.0.0.1:9800 by default.

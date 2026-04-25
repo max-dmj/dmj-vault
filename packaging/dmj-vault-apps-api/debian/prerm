@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    remove|upgrade|deconfigure)
+        rm -f /etc/nginx/sites-enabled/dmj-vault-apps-api
+        nginx -t && systemctl reload nginx || true
+        systemctl stop dmj-vault-apps-api.service || true
+        systemctl disable dmj-vault-apps-api.service || true
+        ;;
+esac
+
+#DEBHELPER#

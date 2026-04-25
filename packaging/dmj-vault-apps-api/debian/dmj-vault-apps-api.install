@@ -1,0 +1,3 @@
+usr/lib/python3*/dist-packages/dmj_vault/apps/api
+usr/bin/dmj-vault-apps-api-start
+usr/bin/dmj-vault-apps-api-nginx-update

@@ -1,0 +1,15 @@
+[Unit]
+Description=dmj-vault API FastAPI service
+After=network.target nginx.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+ExecStart=/usr/bin/dmj-vault-apps-api-start
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+Source: dmj-vault-dbaccess
+Section: python
+Priority: optional
+Maintainer: Max <max@derkacz-mj.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               pybuild-plugin-pyproject
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: dmj-vault-dbaccess
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends},
+         python3-peewee,
+         dmj-vault-dbserver
+Description: Peewee ORM layer for dmj-vault
+ Provides the APIKey, IPWhitelist, and Admin peewee models
+ backed by the DMJ_VAULT MySQL database.

@@ -3,8 +3,14 @@ from peewee import (
     AutoField, CharField, TextField, BooleanField,
     DateTimeField, IntegerField,
 )
+from playhouse.shortcuts import ReconnectMixin
 
-db = MySQLDatabase('DMJ_VAULT', user='vault_admin', host='127.0.0.1', password='')
+
+class _ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
+    pass
+
+
+db = _ReconnectMySQLDatabase('DMJ_VAULT', user='vault_admin', host='127.0.0.1', password='')
 
 
 class BaseModel(Model):

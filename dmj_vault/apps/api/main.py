@@ -5,21 +5,9 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel as PydanticBaseModel
 
-from dmj_vault.dbaccess import APIKey, IPWhitelist, db
+from dmj_vault.dbaccess import APIKey, IPWhitelist
 
 app = FastAPI(title='dmj-vault-api')
-
-
-@app.on_event('startup')
-def startup():
-    if db.is_closed():
-        db.connect()
-
-
-@app.on_event('shutdown')
-def shutdown():
-    if not db.is_closed():
-        db.close()
 
 
 class CheckRequest(PydanticBaseModel):

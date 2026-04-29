@@ -14,8 +14,9 @@
       <thead class="table-light">
         <tr>
           <th>UID</th>
-          <th>Scopes</th>
+          <th>Name</th>
           <th>Status</th>
+          <th>Scopes</th>
           <th>Created</th>
           <th>Expires</th>
         </tr>
@@ -28,19 +29,20 @@
                class="uid-mono text-decoration-none"
                title="{{ k.uid }}">{{ k.uid[:16] }}…</a>
           </td>
-          <td>
-            {% for scope in k.permissions_summary %}
-              <span class="badge bg-secondary me-1">{{ scope }}</span>
-            {% else %}
-              <span class="text-muted small">—</span>
-            {% endfor %}
-          </td>
+          <td class="small">{{ k.name or '—' }}</td>
           <td>
             {% if k.is_valid %}
               <span class="badge bg-success">Active</span>
             {% else %}
               <span class="badge bg-secondary">Inactive</span>
             {% endif %}
+          </td>
+          <td>
+            {% for scope in k.permissions_summary %}
+              <span class="badge bg-secondary me-1">{{ scope }}</span>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endfor %}
           </td>
           <td class="small text-muted">{{ k.ts_created.strftime('%Y-%m-%d') if k.ts_created else '—' }}</td>
           <td class="small text-muted">{{ k.ts_expires.strftime('%Y-%m-%d') if k.ts_expires else '—' }}</td>

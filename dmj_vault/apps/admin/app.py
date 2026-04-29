@@ -90,6 +90,7 @@ def list_api_keys():
             perms = {}
         result.append({
             'uid': k.uid,
+            'name': k.name,
             'is_valid': bool(k.is_valid),
             'ts_expires': k.ts_expires.isoformat() if k.ts_expires else None,
             'permissions_summary': list(perms.keys()),
@@ -102,11 +103,13 @@ def list_api_keys():
 def create_api_key():
     data = request.get_json(force=True)
     uid = str(uuid4())
+    name = data.get('name', '')
     permissions = data.get('permissions', {})
     ts_expires = data.get('ts_expires', None)
 
     APIKey.create(
         uid=uid,
+        name=name,
         permissions=json.dumps(permissions),
         ts_expires=ts_expires,
     )
@@ -132,6 +135,7 @@ def get_api_key(uid):
 
     return jsonify({
         'uid': key.uid,
+        'name': key.name,
         'is_valid': bool(key.is_valid),
         'ts_created': key.ts_created.isoformat() if key.ts_created else None,
         'ts_expires': key.ts_expires.isoformat() if key.ts_expires else None,
@@ -149,6 +153,8 @@ def update_api_key(uid):
         return jsonify({'error': 'Not found'}), 404
 
     data = request.get_json(force=True)
+    if 'name' in data:
+        key.name = data['name']
     if 'is_valid' in data:
         key.is_valid = bool(data['is_valid'])
     if 'ts_expires' in data:
@@ -238,7 +244,7 @@ def ui_keys():
             perms = json.loads(k.permissions)
         except (ValueError, TypeError):
             perms = {}
-        k.permissions_summary = list(perms.keys())
+        k.permissions_summary = [f'{s}:{a}' for s, a in perms.items()]
     return render_template('keys.html', keys=keys)
 
 
@@ -246,7 +252,7 @@ def ui_keys():
 @ui_login_required
 def ui_keys_new():
     return render_template('key_detail.html',
-                           uid=None, is_valid=False,
+                           uid=None, is_valid=False, name='',
                            ts_created=None, ts_expires_local='',
                            permissions_json='{}', whitelist=[])
 
@@ -255,9 +261,10 @@ def ui_keys_new():
 @ui_login_required
 def ui_keys_new_post():
     uid = str(uuid4())
+    name = request.form.get('name', '').strip()
     perms = _parse_permissions_form()
     ts_expires = _parse_ts_expires()
-    APIKey.create(uid=uid, permissions=json.dumps(perms), ts_expires=ts_expires)
+    APIKey.create(uid=uid, name=name, permissions=json.dumps(perms), ts_expires=ts_expires)
     flash('Key created.', 'success')
     return redirect(url_for('ui_key_detail', uid=uid))
 
@@ -284,6 +291,7 @@ def ui_key_detail(uid):
     return render_template('key_detail.html',
                            uid=key.uid,
                            is_valid=bool(key.is_valid),
+                           name=key.name,
                            ts_created=key.ts_created,
                            ts_expires_local=ts_expires_local,
                            permissions_json=json.dumps(perms),
@@ -299,6 +307,7 @@ def ui_key_save(uid):
         flash('Key not found.', 'error')
         return redirect(url_for('ui_keys'))
 
+    key.name = request.form.get('name', '').strip()
     key.permissions = json.dumps(_parse_permissions_form())
     key.ts_expires = _parse_ts_expires()
     key.save()

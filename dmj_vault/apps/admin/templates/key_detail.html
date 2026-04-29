@@ -42,6 +42,12 @@
               action="{{ url_for('ui_key_save', uid=uid) if uid else url_for('ui_keys_new') }}"
               id="key-form">
           <div class="mb-3">
+            <label for="name" class="form-label fw-semibold">Name</label>
+            <input type="text" class="form-control" id="name" name="name"
+                   value="{{ name }}" placeholder="e.g. My Service">
+          </div>
+
+          <div class="mb-3">
             <label class="form-label fw-semibold">Permissions</label>
             <input type="hidden" name="permissions_json" id="permissions_json" value="{{ permissions_json }}">
             <div id="scope-rows" class="d-flex flex-column gap-2 mb-2"></div>

@@ -1,3 +1,10 @@
+dmj-vault-dbserver (1.0.1) unstable; urgency=low
+
+  * Add migration 20260429-1 to add `name` column to API_KEY table.
+  * Fix debian/rules to exclude .pyc files from migrations directory in package.
+
+ -- Max <max@derkacz-mj.com>  Tue, 29 Apr 2026 00:00:00 +0000
+
 dmj-vault-dbserver (1.0.0) unstable; urgency=low
 
   * Initial release.

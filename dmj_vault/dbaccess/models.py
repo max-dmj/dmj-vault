@@ -21,6 +21,7 @@ class BaseModel(Model):
 class APIKey(BaseModel):
     id = AutoField()
     uid = CharField(max_length=128, unique=True)
+    name = CharField(max_length=255, default='')
     permissions = TextField()
     is_valid = BooleanField(default=False)
     ts_created = DateTimeField()

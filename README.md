@@ -38,9 +38,9 @@ Listens on `127.0.0.1:9701` by default. All routes except `/login` require an ac
 | `/login` | POST | `{"login": "...", "password": "..."}` |
 | `/logout` | POST | Clears session |
 | `/api-keys` | GET | List all API keys |
-| `/api-keys` | POST | Create key: `{"permissions": {"scope": "read\|write"}, "ts_expires": null}` |
-| `/api-keys/<uid>` | GET | Key detail with whitelist |
-| `/api-keys/<uid>/update` | POST | Update `is_valid`, `ts_expires`, `permissions` |
+| `/api-keys` | POST | Create key: `{"name": "", "permissions": {"scope": "read\|write"}, "ts_expires": null}` |
+| `/api-keys/<uid>` | GET | Key detail with whitelist; includes `name` field |
+| `/api-keys/<uid>/update` | POST | Update `name`, `is_valid`, `ts_expires`, `permissions` |
 | `/api-keys/<uid>/delete` | POST | Delete key and its whitelist entries |
 | `/api-keys/<uid>/whitelist/add` | POST | `{"src_ip_address": "1.2.3.4"}` |
 | `/api-keys/<uid>/whitelist/<id>/delete` | POST | Remove whitelist entry |

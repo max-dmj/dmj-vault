@@ -9,6 +9,7 @@ override_dh_python3:
 		if [ -d "$$pkg_dir" ]; then \
 			python3 -m compileall -b "$$pkg_dir"; \
 			find "$$pkg_dir" -name '*.py' -not -path "*/migrations/*" -delete; \
+			find "$$pkg_dir" -path "*/migrations/*.pyc" -delete; \
 			find "$$pkg_dir" -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true; \
 		fi; \
 	done

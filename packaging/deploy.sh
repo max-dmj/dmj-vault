@@ -29,7 +29,7 @@ if ! ls "$LOCAL_PKG_DIR/${PROJECT_NAME}-"*.deb >/dev/null 2>&1; then
     exit 1
 fi
 
-ssh "$TARGET" "command -v rsync >/dev/null || sudo apt install -y rsync"
+ssh "$TARGET" "command -v rsync >/dev/null || apt install -y rsync"
 
 echo "=== Syncing $LOCAL_PKG_DIR/ → $TARGET:$REMOTE_PKG_DIR/ ==="
 rsync -av --delete "$LOCAL_PKG_DIR/" "$TARGET:$REMOTE_PKG_DIR/"

@@ -1,0 +1,4 @@
+[mysqld]
+# Restrict MariaDB to loopback only. dmj-vault does not expose the database
+# to the network and this must remain true regardless of upstream defaults.
+bind-address = 127.0.0.1

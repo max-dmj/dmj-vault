@@ -3,6 +3,10 @@ export PYBUILD_DESTDIR=debian/tmp
 %:
 	dh $@ --with python3 --buildsystem=pybuild
 
+override_dh_install:
+	install -D -m 644 debian/99-dmj-vault.cnf debian/dmj-vault-dbserver/etc/mysql/mariadb.conf.d/99-dmj-vault.cnf
+	dh_install
+
 override_dh_python3:
 	dh_python3
 	for pkg_dir in debian/dmj-vault-dbserver/usr/lib/python3*/dist-packages/dmj_vault; do \

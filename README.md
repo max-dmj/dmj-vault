@@ -133,3 +133,83 @@ Build a single package:
 ```bash
 ./packaging/build_deb.sh dmj-vault-dbserver
 ```
+
+## Deploying
+
+### Conventional way:
+  1. Configure target machine with deb repo (`/etc/apt/sources.list.d/<your-repo-cofig>.sources`)
+  2. Upload packages to the **deb repo** 
+  3. On the target run `sudo apt install dmj-vault-apps-api dmj-vault-apps-admin` and then `sudo apt update && sudo apt upgrade` each time there is an upgrade.
+
+### Direct upload and install
+
+  1. `scp` packages to the target machine and run `sudo apt install /path/to/packages/dmj-vault-*`
+
+### Automated upload and install
+
+#### [RC example] SSH setup prerequisite (on your build machine)
+
+1. Setup SSH tunel to the target machine. Edit `/root/.ssh/config`:
+```
+  Host rc-dispatcher
+	User root
+	IdentityFile ~/.ssh/ssh_pk.pem
+	HostName 185.75.33.142
+	LocalForward 4104 10.0.10.4:22
+```
+
+2. Run (as root) 
+```bash 
+ssh -N rc-dispatcher
+```
+
+3. Edit your `~/.ssh/config`:
+```
+Host rc-ai-key-vault
+	User root
+	IdentityFile ~/.ssh/ssh_pk.pem
+	HostName 127.0.0.1
+	Port 4104
+```
+
+4. Run deploy (as your normal user)
+```bash
+./packaging/build_deb.sh all && ./packaging/deploy.sh rc-ai-key-vault
+```
+
+### Post install configuration (one time after the first install)
+
+**On the target machine edit `/etc/dmj-vault-apps-api/conf` set `NGINX_HOST=10.0.10.4` (RC example),** then:
+```bash
+dmj-vault-apps-api-nginx-update
+```
+
+## Accessing Admin app (RC example)
+
+Upon successfull deployment.
+
+On the target machine (as root):
+```bash
+dmj-vault-set-admin-account
+apt install -y chromium
+adduser mbuser
+cp /root/.ssh/authorized_keys /home/mbuser/.ssh/authorized_keys
+chown -R mbuser:mbuser /home/mbuser/.ssh
+```
+
+On you build machine add to your `~/.ssh/config`:
+```
+Host rc-ai-key-vault-admin
+	User mbuser
+	IdentityFile ~/.ssh/ssh_pk.pem
+	HostName 127.0.0.1
+	ForwardX11 yes
+	Port 4104
+```
+
+Connect to the target as **non-root with X-forwarding ON**:
+```bash
+ssh rc-ai-key-vault-admin
+```
+From the same session run `chromium` and navigate to `http://127.0.0.1:9701`
+

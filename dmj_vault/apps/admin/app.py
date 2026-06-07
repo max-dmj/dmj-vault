@@ -4,11 +4,15 @@ from functools import wraps
 from uuid import uuid4
 
 from flask import Flask, jsonify, redirect, render_template, request, session, flash, url_for
+from flask_session import Session
 
 from dmj_vault.dbaccess import db, APIKey, Admin, IPWhitelist
 
 app = Flask(__name__)
-app.secret_key = 'dmj-vault-admin-secret-change-me'
+app.config['SECRET_KEY'] = 'dmj-vault-admin-secret-change-me'
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = '/var/run/dmj-vault/sessions'
+Session(app)
 
 
 @app.before_request

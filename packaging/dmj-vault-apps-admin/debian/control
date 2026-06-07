@@ -14,6 +14,8 @@ Package: dmj-vault-apps-admin
 Architecture: all
 Depends: ${python3:Depends}, ${misc:Depends},
          python3-flask,
+         python3-flask-session,
+         python3-msgspec,
          gunicorn,
          dmj-vault-dbaccess,
          python3-werkzeug

@@ -9,12 +9,12 @@ def main():
         print("Error: this command must be run as root.", file=sys.stderr)
         sys.exit(1)
 
-    login = input("Admin login: ").strip()
+    login = os.environ.get('VAULT_ADMIN_LOGIN') or input("Admin login: ").strip()
     if not login:
         print("Error: login cannot be empty.", file=sys.stderr)
         sys.exit(1)
 
-    password = getpass.getpass("Admin password: ")
+    password = os.environ.get('VAULT_ADMIN_PASSWORD') or getpass.getpass("Admin password: ")
     if not password:
         print("Error: password cannot be empty.", file=sys.stderr)
         sys.exit(1)

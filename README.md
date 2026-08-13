@@ -19,6 +19,15 @@ All packages are installed on the same machine by design:
 sudo apt install dmj-vault-*.deb
 ```
 
+## Sample install + configuration in LOCAL DEV ENV (see incus-plan.md)
+```bash
+packaging/build_deb.sh all
+packaging/deploy.sh ct-ai-key-vault
+cd ../mb-config
+ansible-playbook playbooks/vault-server.yaml --limit 'dev_*'
+
+```
+
 ## Post-install setup
 
 Set the admin account (run once after installing `dmj-vault-dbserver`):

@@ -11,7 +11,8 @@
 <div class="card shadow-sm mb-3">
   <div class="card-body">
     <div class="d-flex align-items-center gap-3 flex-wrap">
-      <span class="uid-mono text-break flex-grow-1" id="uid-text">{{ uid }}</span>
+      <input type="text" class="form-control uid-mono flex-grow-1" id="uid-text"
+             name="uid" form="key-form" value="{{ uid }}" required>
       <button class="btn btn-outline-secondary btn-sm" type="button" onclick="copyUid()">Copy</button>
       {% if is_valid %}
         <span class="badge bg-success fs-6">Active</span>
@@ -160,7 +161,7 @@
   } catch(e) {}
 
   function copyUid() {
-    const text = document.getElementById('uid-text').textContent.trim();
+    const text = document.getElementById('uid-text').value.trim();
     navigator.clipboard.writeText(text).then(() => {
       const btn = event.target;
       btn.textContent = 'Copied!';

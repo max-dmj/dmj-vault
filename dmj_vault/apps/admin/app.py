@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from flask import Flask, jsonify, redirect, render_template, request, session, flash, url_for
 from flask_session import Session
+from peewee import IntegrityError
 
 from dmj_vault.dbaccess import db, APIKey, Admin, IPWhitelist
 
@@ -157,6 +158,11 @@ def update_api_key(uid):
         return jsonify({'error': 'Not found'}), 404
 
     data = request.get_json(force=True)
+    if 'uid' in data:
+        new_uid = data['uid'].strip()
+        if not new_uid:
+            return jsonify({'error': 'uid cannot be empty'}), 400
+        key.uid = new_uid
     if 'name' in data:
         key.name = data['name']
     if 'is_valid' in data:
@@ -165,7 +171,10 @@ def update_api_key(uid):
         key.ts_expires = data['ts_expires']
     if 'permissions' in data:
         key.permissions = json.dumps(data['permissions'])
-    key.save()
+    try:
+        key.save()
+    except IntegrityError:
+        return jsonify({'error': 'uid already in use'}), 409
     return jsonify({'ok': True})
 
 
@@ -311,12 +320,22 @@ def ui_key_save(uid):
         flash('Key not found.', 'error')
         return redirect(url_for('ui_keys'))
 
+    new_uid = request.form.get('uid', '').strip()
+    if not new_uid:
+        flash('UID cannot be empty.', 'error')
+        return redirect(url_for('ui_key_detail', uid=uid))
+
+    key.uid = new_uid
     key.name = request.form.get('name', '').strip()
     key.permissions = json.dumps(_parse_permissions_form())
     key.ts_expires = _parse_ts_expires()
-    key.save()
+    try:
+        key.save()
+    except IntegrityError:
+        flash('That UID is already in use by another key.', 'error')
+        return redirect(url_for('ui_key_detail', uid=uid))
     flash('Saved.', 'success')
-    return redirect(url_for('ui_key_detail', uid=uid))
+    return redirect(url_for('ui_key_detail', uid=new_uid))
 
 
 @app.route('/keys/<uid>/toggle', methods=['POST'])

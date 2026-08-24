@@ -22,10 +22,21 @@ sudo apt install dmj-vault-*.deb
 ## Sample install + configuration in LOCAL DEV ENV (see incus-plan.md)
 ```bash
 packaging/build_deb.sh all
-packaging/deploy.sh ct-ai-key-vault
+packaging/deploy.sh ct-aidb-key-vault
 cd ../mb-config
-ansible-playbook playbooks/vault-server.yaml --limit 'dev_*'
-
+ansible-playbook playbooks/aidb-vault-app.yaml --limit 'dev_*'
+# http://10.0.11.5:9701  # admin:admin
+# sanitizer_api_key # scope: sanitizer-api
+# aidb_sync_api_key # scopes(write): 
+#	mbaidb-apps-api.revision
+# 	mbaidb-apps-api.targets
+#	mbaidb-apps-api.monitoring
+#	mbaidb-apps-api.validation
+# demo_app_key # scopes(read): 
+#	mbaidb-apps-api.revision
+# 	mbaidb-apps-api.targets
+#	mbaidb-apps-api.monitoring
+#	mbaidb-apps-api.validation
 ```
 
 ## Post-install setup
@@ -49,7 +60,7 @@ Listens on `127.0.0.1:9701` by default. All routes except `/login` require an ac
 | `/api-keys` | GET | List all API keys |
 | `/api-keys` | POST | Create key: `{"name": "", "permissions": {"scope": "read\|write"}, "ts_expires": null}` |
 | `/api-keys/<uid>` | GET | Key detail with whitelist; includes `name` field |
-| `/api-keys/<uid>/update` | POST | Update `name`, `is_valid`, `ts_expires`, `permissions` |
+| `/api-keys/<uid>/update` | POST | Update `uid`, `name`, `is_valid`, `ts_expires`, `permissions` |
 | `/api-keys/<uid>/delete` | POST | Delete key and its whitelist entries |
 | `/api-keys/<uid>/whitelist/add` | POST | `{"src_ip_address": "1.2.3.4"}` |
 | `/api-keys/<uid>/whitelist/<id>/delete` | POST | Remove whitelist entry |

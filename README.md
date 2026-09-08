@@ -23,7 +23,7 @@ sudo apt install dmj-vault-*.deb
 ```bash
 packaging/build_deb.sh all
 packaging/deploy.sh ct-aidb-key-vault
-cd ../mb-config
+cd ../ops
 ansible-playbook playbooks/aidb-vault-app.yaml --limit 'dev_*'
 # http://10.0.11.5:9701  # admin:admin
 # sanitizer_api_key # scope: sanitizer-api

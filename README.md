@@ -22,21 +22,21 @@ sudo apt install dmj-vault-*.deb
 ## Sample install + configuration in LOCAL DEV ENV (see incus-plan.md)
 ```bash
 packaging/build_deb.sh all
-packaging/deploy.sh ct-aidb-key-vault
+packaging/deploy.sh ct-aidata-key-vault
 cd ../ops
-ansible-playbook playbooks/aidb-vault-app.yaml --limit 'dev_*'
+ansible-playbook playbooks/aidata-vault-app.yaml -e deployment_environment=dev
 # http://10.0.11.5:9701  # admin:admin
 # sanitizer_api_key # scope: sanitizer-api
-# aidb_sync_api_key # scopes(write): 
-#	mbaidb-apps-api.revision
-# 	mbaidb-apps-api.targets
-#	mbaidb-apps-api.monitoring
-#	mbaidb-apps-api.validation
+# aidata_sync_api_key # scopes(write): 
+#	mbaidata-apps-api.revision
+# 	mbaidata-apps-api.targets
+#	mbaidata-apps-api.monitoring
+#	mbaidata-apps-api.validation
 # demo_app_key # scopes(read): 
-#	mbaidb-apps-api.revision
-# 	mbaidb-apps-api.targets
-#	mbaidb-apps-api.monitoring
-#	mbaidb-apps-api.validation
+#	mbaidata-apps-api.revision
+# 	mbaidata-apps-api.targets
+#	mbaidata-apps-api.monitoring
+#	mbaidata-apps-api.validation
 ```
 
 ## Post-install setup

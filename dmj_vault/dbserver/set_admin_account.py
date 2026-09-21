@@ -25,12 +25,18 @@ def main():
     from dmj_vault.dbserver.db import get_db_cursor
     cursor = get_db_cursor()
 
-    cursor.execute("DELETE FROM `ADMIN`;")
-    cursor.fetchall()
-    cursor.execute(
-        "INSERT INTO `ADMIN` (`login`, `password`) VALUES (%s, %s);",
-        (login, password_hash))
-    cursor.fetchall()
+    cursor.execute("START TRANSACTION;")
+    try:
+        cursor.execute("DELETE FROM `ADMIN`;")
+        cursor.fetchall()
+        cursor.execute(
+            "INSERT INTO `ADMIN` (`login`, `password`) VALUES (%s, %s);",
+            (login, password_hash))
+        cursor.fetchall()
+        cursor.execute("COMMIT;")
+    except Exception:
+        cursor.execute("ROLLBACK;")
+        raise
     cursor.close()
 
     print("Admin account set successfully.")

@@ -11,6 +11,7 @@ license = {text = "MIT"}
 
 [project.scripts]
 dmj-vault-set-admin-account = "dmj_vault.dbserver.set_admin_account:main"
+dmj-vault-set-api-keys = "dmj_vault.dbserver.set_api_keys:main"
 
 [tool.dmj-vault]
 source-dir = "dmj_vault/dbserver"

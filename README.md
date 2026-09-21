@@ -6,7 +6,7 @@ Simple API Keys Vault — issue API keys with scoped permissions, validate them 
 
 | Package | Description |
 |---------|-------------|
-| `dmj-vault-dbserver` | MySQL database setup (`DMJ_VAULT`), schema migrations, admin account CLI |
+| `dmj-vault-dbserver` | MySQL database setup (`DMJ_VAULT`), schema migrations, admin account and API key CLIs |
 | `dmj-vault-dbaccess` | Peewee ORM models (depends on dbserver) |
 | `dmj-vault-apps-admin` | Flask JSON API for managing keys (gunicorn, 127.0.0.1:9701) |
 | `dmj-vault-apps-api` | FastAPI `/check` endpoint (gunicorn + nginx, 127.0.0.1:9800) |
@@ -25,19 +25,11 @@ packaging/build_deb.sh all
 packaging/deploy.sh ct-aidata-key-vault
 cd ../ops
 ansible-playbook playbooks/aidata-vault-app.yaml -e deployment_environment=dev
-# http://10.0.11.5:9701  # admin:admin
-# sanitizer_api_key # scope: sanitizer-api
-# aidata_sync_api_key # scopes(write): 
-#	mbaidata-apps-api.revision
-# 	mbaidata-apps-api.targets
-#	mbaidata-apps-api.monitoring
-#	mbaidata-apps-api.validation
-# demo_app_key # scopes(read): 
-#	mbaidata-apps-api.revision
-# 	mbaidata-apps-api.targets
-#	mbaidata-apps-api.monitoring
-#	mbaidata-apps-api.validation
+# http://10.0.11.5:9701
 ```
+
+The playbook sets the admin account and the API keys from
+`inventory/group_vars/<env>/secrets.yaml`. 
 
 ## Post-install setup
 
@@ -50,6 +42,11 @@ sudo dmj-vault-set-admin-account
 This sets the login and hashed password in the `ADMIN` table. The default password value (`*`) blocks all login attempts until this command is run.
 
 ## Admin API (`dmj-vault-apps-admin`)
+
+> **Source of truth.** The admin UI writes to the live database and takes effect immediately —
+> use it to try something or to unblock an incident. It is not durable. The next
+> `aidata-vault-app.yaml` run replaces the entire `API_KEY` table with `aidata_vault_api_keys`
+> from the ops repo. Anything worth keeping goes there.
 
 Listens on `127.0.0.1:9701` by default. All routes except `/login` require an active session.
 
@@ -208,14 +205,6 @@ dmj-vault-apps-api-nginx-update
 
 Upon successfull deployment.
 
-On the target machine (as root):
-```bash
-dmj-vault-set-admin-account
-apt install -y chromium
-adduser mbuser
-cp /root/.ssh/authorized_keys /home/mbuser/.ssh/authorized_keys
-chown -R mbuser:mbuser /home/mbuser/.ssh
-```
 
 On you build machine add to your `~/.ssh/config`:
 ```

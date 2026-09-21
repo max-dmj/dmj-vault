@@ -1,2 +1,3 @@
 usr/lib/python3*/dist-packages/dmj_vault/dbserver
 usr/bin/dmj-vault-set-admin-account
+usr/bin/dmj-vault-set-api-keys

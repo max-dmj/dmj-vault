@@ -9,6 +9,7 @@ User=www-data
 Group=www-data
 EnvironmentFile=/etc/dmj-vault-apps-admin/conf
 EnvironmentFile=/etc/dmj-vault-apps-admin/key
+EnvironmentFile=-/etc/dmj-vault-apps-admin/conf.d/*.conf
 ExecStart=/usr/bin/dmj-vault-apps-admin-start
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure

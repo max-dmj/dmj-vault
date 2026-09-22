@@ -9,8 +9,8 @@ CONF_D_DIR = '/etc/dmj-vault-apps-api/conf.d'
 NGINX_SITE = '/etc/nginx/sites-available/dmj-vault-apps-api'
 NGINX_ENABLED = '/etc/nginx/sites-enabled/dmj-vault-apps-api'
 
-REQUIRED = ('GUNICORN_HOST', 'GUNICORN_PORT', 'GUNICORN_WORKERS',
-            'NGINX_HOST', 'NGINX_PORT')
+GUNICORN_KEYS = ('GUNICORN_HOST', 'GUNICORN_PORT', 'GUNICORN_WORKERS')
+NGINX_KEYS = ('NGINX_HOST', 'NGINX_PORT')
 
 
 def read_config():
@@ -34,11 +34,7 @@ def read_config():
             if fname.endswith('.conf'):
                 parse_file(os.path.join(CONF_D_DIR, fname))
 
-    for key in REQUIRED:
-        if key in os.environ:
-            config[key] = os.environ[key]
-
-    missing = [k for k in REQUIRED if not config.get(k)]
+    missing = [k for k in GUNICORN_KEYS + NGINX_KEYS if not config.get(k)]
     if missing:
         sys.exit("%s not set in %s -- run the dmj-vault-apps-api role"
                  % (', '.join(missing), CONFIG_FILE))
@@ -78,15 +74,15 @@ def update_nginx_main():
 
 
 def main():
-    config = read_config()
-    host = config['GUNICORN_HOST']
-    port = config['GUNICORN_PORT']
-    workers = config['GUNICORN_WORKERS']
+    missing = [k for k in GUNICORN_KEYS if not os.environ.get(k)]
+    if missing:
+        sys.exit("%s not set -- run the dmj-vault-apps-api role"
+                 % ', '.join(missing))
 
     os.execv('/usr/bin/gunicorn', [
         'gunicorn',
         'dmj_vault.apps.api.wsgi:app',
         '--worker-class', 'uvicorn.workers.UvicornWorker',
-        '--bind', f'{host}:{port}',
-        '--workers', workers,
+        '--bind', f"{os.environ['GUNICORN_HOST']}:{os.environ['GUNICORN_PORT']}",
+        '--workers', os.environ['GUNICORN_WORKERS'],
     ])

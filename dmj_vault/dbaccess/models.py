@@ -1,3 +1,5 @@
+import os
+
 from peewee import (
     MySQLDatabase, Model,
     AutoField, CharField, TextField, BooleanField,
@@ -10,7 +12,13 @@ class _ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
     pass
 
 
-db = _ReconnectMySQLDatabase('DMJ_VAULT', user='vault_admin', host='127.0.0.1', password='')
+db = _ReconnectMySQLDatabase(
+    os.environ['DB_NAME'],
+    user=os.environ['DB_USER'],
+    password=os.environ['DB_PASS'],
+    host=os.environ['DB_HOST'],
+    port=int(os.environ['DB_PORT']),
+)
 
 
 class BaseModel(Model):

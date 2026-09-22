@@ -1,3 +1,11 @@
+dmj-vault-apps-api (1.1.0) unstable; urgency=low
+
+  * db config parametrized and separated into ansible
+  * postinst emptied: ship inert conf/key stubs, read via EnvironmentFile
+  * nginx site shipped as an inert stub; content written by -nginx-update
+
+ -- Max <max@derkacz-mj.com>  Tue, 22 Sep 2026 00:00:00 +0000
+
 dmj-vault-apps-api (1.0.0) unstable; urgency=low
 
   * Initial release.

@@ -1,16 +1,15 @@
 #!/usr/bin/python3
 import os
+import sys
 
 CONFIG_FILE = '/etc/dmj-vault-apps-admin/conf'
 CONF_D_DIR = '/etc/dmj-vault-apps-admin/conf.d'
 
+REQUIRED = ('HOST', 'PORT', 'WORKERS')
+
 
 def read_config():
-    config = {
-        'PORT': '9701',
-        'HOST': '127.0.0.1',
-        'WORKERS': '2',
-    }
+    config = {}
 
     def parse_file(path):
         with open(path) as f:
@@ -29,6 +28,15 @@ def read_config():
         for fname in sorted(os.listdir(CONF_D_DIR)):
             if fname.endswith('.conf'):
                 parse_file(os.path.join(CONF_D_DIR, fname))
+
+    for key in REQUIRED:
+        if key in os.environ:
+            config[key] = os.environ[key]
+
+    missing = [k for k in REQUIRED if not config.get(k)]
+    if missing:
+        sys.exit("%s not set in %s -- run the dmj-vault-apps-admin role"
+                 % (', '.join(missing), CONFIG_FILE))
 
     return config
 

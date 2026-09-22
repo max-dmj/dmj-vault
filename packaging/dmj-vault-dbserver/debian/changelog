@@ -1,3 +1,11 @@
+dmj-vault-dbserver (1.2.0) unstable; urgency=low
+
+  * db config parametrized and separated into ansible
+  * postinst emptied: db, user, grants and schema now owned by the ansible role
+  * ship inert conf/key stubs; add dmj-vault-setup-schema CLI
+
+ -- Max <max@derkacz-mj.com>  Tue, 22 Sep 2026 00:00:00 +0000
+
 dmj-vault-dbserver (1.1.0) unstable; urgency=low
 
   * Add dmj-vault-set-api-keys CLI: replacing the whole API_KEY table.

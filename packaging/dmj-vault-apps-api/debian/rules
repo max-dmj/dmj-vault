@@ -17,3 +17,8 @@ override_dh_install:
 	dh_install
 	install -D -m 644 debian/dmj-vault-apps-api.nginx \
 		debian/dmj-vault-apps-api/etc/nginx/sites-available/dmj-vault-apps-api
+	install -D -m 640 debian/conf.stub debian/dmj-vault-apps-api/etc/dmj-vault-apps-api/conf
+	install -D -m 600 debian/key.stub debian/dmj-vault-apps-api/etc/dmj-vault-apps-api/key
+
+override_dh_fixperms:
+	dh_fixperms -Xetc/dmj-vault-apps-api/key

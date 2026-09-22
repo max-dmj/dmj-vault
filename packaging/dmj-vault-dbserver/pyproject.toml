@@ -10,6 +10,7 @@ dependencies = []
 license = {text = "MIT"}
 
 [project.scripts]
+dmj-vault-setup-schema = "dmj_vault.dbserver.setup_schema:main"
 dmj-vault-set-admin-account = "dmj_vault.dbserver.set_admin_account:main"
 dmj-vault-set-api-keys = "dmj_vault.dbserver.set_api_keys:main"
 

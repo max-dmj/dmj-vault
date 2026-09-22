@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import subprocess
+import sys
 
 CONFIG_FILE = '/etc/dmj-vault-apps-api/conf'
 CONF_D_DIR = '/etc/dmj-vault-apps-api/conf.d'
@@ -8,15 +9,12 @@ CONF_D_DIR = '/etc/dmj-vault-apps-api/conf.d'
 NGINX_SITE = '/etc/nginx/sites-available/dmj-vault-apps-api'
 NGINX_ENABLED = '/etc/nginx/sites-enabled/dmj-vault-apps-api'
 
+REQUIRED = ('GUNICORN_HOST', 'GUNICORN_PORT', 'GUNICORN_WORKERS',
+            'NGINX_HOST', 'NGINX_PORT')
+
 
 def read_config():
-    config = {
-        'GUNICORN_PORT': '9702',
-        'GUNICORN_HOST': '127.0.0.1',
-        'GUNICORN_WORKERS': '4',
-        'NGINX_PORT': '9800',
-        'NGINX_HOST': '127.0.0.1',
-    }
+    config = {}
 
     def parse_file(path):
         with open(path) as f:
@@ -35,6 +33,15 @@ def read_config():
         for fname in sorted(os.listdir(CONF_D_DIR)):
             if fname.endswith('.conf'):
                 parse_file(os.path.join(CONF_D_DIR, fname))
+
+    for key in REQUIRED:
+        if key in os.environ:
+            config[key] = os.environ[key]
+
+    missing = [k for k in REQUIRED if not config.get(k)]
+    if missing:
+        sys.exit("%s not set in %s -- run the dmj-vault-apps-api role"
+                 % (', '.join(missing), CONFIG_FILE))
 
     return config
 

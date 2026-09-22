@@ -1,11 +1,14 @@
 [Unit]
 Description=dmj-vault API FastAPI service
-After=network.target nginx.service
+After=network.target nginx.service mysql.service mariadb.service
+Wants=mysql.service mariadb.service
 
 [Service]
 Type=simple
 User=www-data
 Group=www-data
+EnvironmentFile=/etc/dmj-vault-apps-api/conf
+EnvironmentFile=/etc/dmj-vault-apps-api/key
 ExecStart=/usr/bin/dmj-vault-apps-api-start
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure

@@ -1,3 +1,11 @@
+dmj-vault-apps-admin (1.1.0) unstable; urgency=low
+
+  * db config parametrized and separated into ansible
+  * postinst emptied: ship inert conf/key stubs, read via EnvironmentFile
+  * SECRET_KEY from ADMIN_SECRET_KEY instead of a hardcoded literal
+
+ -- Max <max@derkacz-mj.com>  Tue, 22 Sep 2026 00:00:00 +0000
+
 dmj-vault-apps-admin (1.0.1) unstable; urgency=low
 
   * Add `name` field to API key create, update, list, and detail endpoints.

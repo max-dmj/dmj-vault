@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime
 from functools import wraps
 from uuid import uuid4
@@ -10,7 +11,7 @@ from peewee import IntegrityError
 from dmj_vault.dbaccess import db, APIKey, Admin, IPWhitelist
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'dmj-vault-admin-secret-change-me'
+app.config['SECRET_KEY'] = os.environ['ADMIN_SECRET_KEY']
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = '/var/run/dmj-vault/sessions'
 Session(app)

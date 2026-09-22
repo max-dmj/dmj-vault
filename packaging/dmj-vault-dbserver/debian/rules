@@ -5,7 +5,12 @@ export PYBUILD_DESTDIR=debian/tmp
 
 override_dh_install:
 	install -D -m 644 debian/99-dmj-vault.cnf debian/dmj-vault-dbserver/etc/mysql/mariadb.conf.d/99-dmj-vault.cnf
+	install -D -m 640 debian/conf.stub debian/dmj-vault-dbserver/etc/dmj-vault-dbserver/conf
+	install -D -m 600 debian/key.stub debian/dmj-vault-dbserver/etc/dmj-vault-dbserver/key
 	dh_install
+
+override_dh_fixperms:
+	dh_fixperms -Xetc/dmj-vault-dbserver/key
 
 override_dh_python3:
 	dh_python3

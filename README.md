@@ -19,13 +19,28 @@ All packages are installed on the same machine by design:
 sudo apt install dmj-vault-*.deb
 ```
 
-## Sample install + configuration in LOCAL DEV ENV (see incus-plan.md)
+## Sample install + configuration (see incus-plan.md)
+
+Build, install and configure in one step, for any environment:
+
+```bash
+cd ../ops
+deployment/aidata/aidata-vault.sh dev
+# http://10.0.11.5:9701
+```
+
+The packages are built on the build server, published to the environment's
+internal apt repository and installed from there; the script then runs
+`playbooks/aidata-vault-app.yaml` and checks that the admin UI and the API answer.
+See `ops/deployment/README.md`.
+
+Without a build server, build and install by hand, then configure:
+
 ```bash
 packaging/build_deb.sh all
 packaging/deploy.sh ct-aidata-key-vault
 cd ../ops
 ansible-playbook playbooks/aidata-vault-app.yaml -e deployment_environment=dev
-# http://10.0.11.5:9701
 ```
 
 The playbook sets the admin account and the API keys from

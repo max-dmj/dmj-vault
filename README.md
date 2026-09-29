@@ -40,7 +40,7 @@ Without a build server, build and install by hand, then configure:
 packaging/build_deb.sh all
 packaging/deploy.sh ct-aidata-key-vault
 cd ../ops
-ansible-playbook playbooks/aidata-vault-app.yaml -e deployment_environment=dev
+ansible-playbook playbooks/aidata-vault-app.yaml --extra-vars deployment_environment=dev
 ```
 
 The playbook sets the admin account and the API keys from

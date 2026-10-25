@@ -14,7 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 PROJECT_NAME="dmj-vault"
-OUTPUT_DIR="/tmp/${PROJECT_NAME}-packages"
+OUTPUT_DIR="${OUTPUT_DIR:-/tmp/${PROJECT_NAME}-packages}"
 MAINTAINER_NAME="${DEBFULLNAME:-Max}"
 MAINTAINER_EMAIL="${DEBEMAIL:-max@derkacz-mj.com}"
 
